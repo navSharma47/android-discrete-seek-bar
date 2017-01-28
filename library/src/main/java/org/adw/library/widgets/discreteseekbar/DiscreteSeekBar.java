@@ -589,10 +589,23 @@ public class DiscreteSeekBar extends View {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        int widthSize = MeasureSpec.getSize(widthMeasureSpec);
-        int height = mThumb.getIntrinsicHeight() + getPaddingTop() + getPaddingBottom();
-        height += (mAddedTouchBounds * 2);
-        setMeasuredDimension(widthSize, height);
+      int width = 0, height = 0;
+      switch (mOrientation) {
+        case HORIZONTAL:
+          width = MeasureSpec.getSize(widthMeasureSpec);
+          height = mThumb.getIntrinsicHeight() + getPaddingTop() + getPaddingBottom();
+          height += (mAddedTouchBounds * 2);
+          setMeasuredDimension(width, height);
+          break;
+        case VERTICAL:
+          width = mThumb.getIntrinsicWidth() + getPaddingLeft() + getPaddingRight();
+          width += (mAddedTouchBounds * 2);
+          height = MeasureSpec.getSize(heightMeasureSpec);
+          break;
+      }
+
+      setMeasuredDimension(width, height);
+
     }
 
     @Override
