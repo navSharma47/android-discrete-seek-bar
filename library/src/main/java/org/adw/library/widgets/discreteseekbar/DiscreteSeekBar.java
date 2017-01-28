@@ -38,7 +38,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewParent;
-
+import java.util.Formatter;
+import java.util.Locale;
 import org.adw.library.widgets.discreteseekbar.internal.PopupIndicator;
 import org.adw.library.widgets.discreteseekbar.internal.compat.AnimatorCompat;
 import org.adw.library.widgets.discreteseekbar.internal.compat.SeekBarCompat;
@@ -46,8 +47,8 @@ import org.adw.library.widgets.discreteseekbar.internal.drawable.MarkerDrawable;
 import org.adw.library.widgets.discreteseekbar.internal.drawable.ThumbDrawable;
 import org.adw.library.widgets.discreteseekbar.internal.drawable.TrackRectDrawable;
 
-import java.util.Formatter;
-import java.util.Locale;
+import static org.adw.library.widgets.discreteseekbar.DiscreteSeekBar.Orientation.HORIZONTAL;
+import static org.adw.library.widgets.discreteseekbar.DiscreteSeekBar.Orientation.VERTICAL;
 
 public class DiscreteSeekBar extends View {
 
@@ -62,11 +63,11 @@ public class DiscreteSeekBar extends View {
          * @param value    the new value
          * @param fromUser if the change was made from the user or not (i.e. the developer calling {@link #setProgress(int)}
          */
-        public void onProgressChanged(DiscreteSeekBar seekBar, int value, boolean fromUser);
+        void onProgressChanged(DiscreteSeekBar seekBar, int value, boolean fromUser);
 
-        public void onStartTrackingTouch(DiscreteSeekBar seekBar);
+        void onStartTrackingTouch(DiscreteSeekBar seekBar);
 
-        public void onStopTrackingTouch(DiscreteSeekBar seekBar);
+        void onStopTrackingTouch(DiscreteSeekBar seekBar);
     }
 
     /**
@@ -120,6 +121,11 @@ public class DiscreteSeekBar extends View {
         }
     }
 
+    /** Describes the orientation of {@link DiscreteSeekBar} */
+    protected enum Orientation {
+        HORIZONTAL, VERTICAL
+    }
+
 
     private static final boolean isLollipopOrGreater = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP;
     //We want to always use a formatter so the indicator numbers are "translated" to specific locales.
@@ -164,6 +170,8 @@ public class DiscreteSeekBar extends View {
     private int mAnimationTarget;
     private float mDownX;
     private float mTouchSlop;
+
+    private Orientation mOrientation;
 
     public DiscreteSeekBar(Context context) {
         this(context, null);
@@ -273,6 +281,10 @@ public class DiscreteSeekBar extends View {
                     thumbSize, thumbSize + mAddedTouchBounds + separation);
             mIndicator.setListener(mFloaterListener);
         }
+
+      mOrientation =
+          a.getInt(R.styleable.DiscreteSeekBar_dsb_orientation, 0) == 0 ? HORIZONTAL : VERTICAL;
+
         a.recycle();
 
         setNumericTransformer(new DefaultNumericTransformer());
