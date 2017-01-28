@@ -6,7 +6,7 @@
 
 DiscreteSeekbar is my poor attempt to develop an android implementation of the [Discrete Slider] component from the Google Material Design Guidelines.
 
-##Prologe
+Upd##Prologue
 I really hope Google provides developers with a better (and official) implementation ;)
 
 ##Warning
@@ -69,7 +69,8 @@ You can tweak a few things of the DiscreteSeekbar:
 * **dsb_mirrorForRtl**: reverse the DiscreteSeekBar for RTL locales
 * **dsb_allowTrackClickToDrag**: allows clicking outside the thumb circle to initiate drag. Default TRUE
 * **dsb_indicatorFormatter**: a string [Format] to apply to the value inside the bubble indicator.
-* **dsb_indicatorPopupEnabled**: choose if the bubble indicator will be shown. Default TRUE 
+* **dsb_indicatorPopupEnabled**: choose if the bubble indicator will be shown. Default TRUE
+* **dsb_orientation**: Whether the DiscreteSeekbar will be `horizontal` or `vertical`. Defaults to `horizontal`
 
 ####Design
  

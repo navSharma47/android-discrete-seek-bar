@@ -38,5 +38,9 @@
         <attr name="dsb_scrubberHeight" format="integer|dimension"/>
         <attr name="dsb_thumbSize" format="integer|dimension"/>
         <attr name="dsb_indicatorSeparation" format="integer|dimension"/>
+        <attr name="dsb_orientation" format="integer|enum">
+            <enum name="horizontal" value="0"/>
+            <enum name="vertical" value="1"/>
+        </attr>
     </declare-styleable>
 </resources>
