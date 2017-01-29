@@ -47,6 +47,7 @@ import org.adw.library.widgets.discreteseekbar.internal.drawable.MarkerDrawable;
 import org.adw.library.widgets.discreteseekbar.internal.drawable.ThumbDrawable;
 import org.adw.library.widgets.discreteseekbar.internal.drawable.TrackRectDrawable;
 
+import static java.lang.Math.max;
 import static org.adw.library.widgets.discreteseekbar.DiscreteSeekBar.Orientation.HORIZONTAL;
 import static org.adw.library.widgets.discreteseekbar.DiscreteSeekBar.Orientation.VERTICAL;
 
@@ -206,7 +207,7 @@ public class DiscreteSeekBar extends View {
 
         //Extra pixels for a minimum touch area of 32dp
         int touchBounds = (int) (density * 32);
-        mAddedTouchBounds = Math.max(0, (touchBounds - thumbSize) / 2);
+        mAddedTouchBounds = max(0, (touchBounds - thumbSize) / 2);
 
         int indexMax = R.styleable.DiscreteSeekBar_dsb_max;
         int indexMin = R.styleable.DiscreteSeekBar_dsb_min;
@@ -236,8 +237,8 @@ public class DiscreteSeekBar extends View {
         }
 
         mMin = min;
-        mMax = Math.max(min + 1, max);
-        mValue = Math.max(min, Math.min(max, value));
+        mMax = max(min + 1, max);
+        mValue = max(min, Math.min(max, value));
         updateKeyboardRange();
 
         mIndicatorFormatter = a.getString(R.styleable.DiscreteSeekBar_dsb_indicatorFormatter);
@@ -398,7 +399,7 @@ public class DiscreteSeekBar extends View {
     }
 
     private void setProgress(int value, boolean fromUser) {
-        value = Math.max(mMin, Math.min(mMax, value));
+        value = max(mMin, Math.min(mMax, value));
         if (isAnimationRunning()) {
             mPositionAnimator.cancel();
         }
@@ -582,7 +583,7 @@ public class DiscreteSeekBar extends View {
         if ((mKeyProgressIncrement == 0) || (range / mKeyProgressIncrement > 20)) {
             // It will take the user too long to change this via keys, change it
             // to something more reasonable
-            mKeyProgressIncrement = Math.max(1, Math.round((float) range / 20));
+            mKeyProgressIncrement = max(1, Math.round((float) range / 20));
         }
     }
 
@@ -621,7 +622,7 @@ public class DiscreteSeekBar extends View {
     }
 
     @Override
-    public void scheduleDrawable(Drawable who, Runnable what, long when) {
+    public void scheduleDrawable(@NonNull Drawable who, @NonNull Runnable what, long when) {
         super.scheduleDrawable(who, what, when);
     }
 
@@ -636,14 +637,35 @@ public class DiscreteSeekBar extends View {
         int paddingRight = getPaddingRight();
         int bottom = getHeight() - getPaddingBottom() - addedThumb;
         mThumb.setBounds(paddingLeft, bottom - thumbHeight, paddingLeft + thumbWidth, bottom);
-        int trackHeight = Math.max(mTrackHeight / 2, 1);
-        mTrack.setBounds(paddingLeft + halfThumb, bottom - halfThumb - trackHeight,
-                getWidth() - halfThumb - paddingRight - addedThumb, bottom - halfThumb + trackHeight);
-        int scrubberHeight = Math.max(mScrubberHeight / 2, 2);
-        mScrubber.setBounds(paddingLeft + halfThumb, bottom - halfThumb - scrubberHeight,
-                paddingLeft + halfThumb, bottom - halfThumb + scrubberHeight);
+        int trackSize = max(mTrackHeight / 2, 1);
 
-        //Update the thumb position after size changed
+        int left = paddingLeft + halfThumb;
+        switch (mOrientation) {
+            case HORIZONTAL:
+                int top = bottom - halfThumb - trackSize;
+                int right = getWidth() - halfThumb - paddingRight - addedThumb;
+                int horizontalTrackBottom = bottom - halfThumb + trackSize;
+                mTrack.setBounds(left, top, right, horizontalTrackBottom);
+                break;
+            case VERTICAL:
+                int verticalTrackLeft = getPaddingLeft() + addedThumb + trackSize + halfThumb;
+                int verticalTrackRight = verticalTrackLeft + max(trackSize, 2);
+                int verticalSeekBarTop = getPaddingTop() + addedThumb;
+                int verticalSeekBarBottom =
+                    getHeight() - getPaddingBottom() - addedThumb - trackSize;
+                mTrack.setBounds(
+                    verticalTrackLeft,
+                    verticalSeekBarTop,
+                    verticalTrackRight,
+                    verticalSeekBarBottom);
+                break;
+        }
+
+        int scrubberHeight = max(mScrubberHeight / 2, 2);
+        mScrubber.setBounds(left, bottom - halfThumb - scrubberHeight, left,
+            bottom - halfThumb + scrubberHeight);
+
+        // Update the thumb position after size changed
         updateThumbPosFromCurrentProgress();
     }
 
@@ -924,7 +946,7 @@ public class DiscreteSeekBar extends View {
         int halfThumb = thumbWidth / 2;
         float scaleDraw = (mValue - mMin) / (float) (mMax - mMin);
 
-        //This doesn't matter if RTL, as we just need the "avaiable" area
+        // This doesn't matter if RTL, as we just need the "available" area
         int left = getPaddingLeft() + halfThumb + addedThumb;
         int right = getWidth() - (getPaddingRight() + halfThumb + addedThumb);
         int available = right - left;
