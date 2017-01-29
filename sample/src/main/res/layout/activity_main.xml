@@ -68,5 +68,6 @@
     android:layout_gravity="center_horizontal"
     app:dsb_max="420"
     app:dsb_min="0"
-    app:dsb_orientation="vertical"/>
+    app:dsb_orientation="vertical"
+    app:dsb_value="210"/>
 </LinearLayout>
