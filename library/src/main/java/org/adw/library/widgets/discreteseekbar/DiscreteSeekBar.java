@@ -970,22 +970,22 @@ public class DiscreteSeekBar extends View {
         int thumbWidth = mThumb.getIntrinsicWidth();
         int halfThumb = thumbWidth / 2;
         int start;
+
         if (isRtl()) {
             start = getWidth() - getPaddingRight() - mAddedTouchBounds;
             pos = start - pos - thumbWidth;
-        } else {
-            start = getPaddingLeft() + mAddedTouchBounds;
-            pos = start + pos;
-        }
-        mThumb.copyBounds(mInvalidateRect);
-        mThumb.setBounds(pos, mInvalidateRect.top, pos + thumbWidth, mInvalidateRect.bottom);
-        if (isRtl()) {
             mScrubber.getBounds().right = start - halfThumb;
             mScrubber.getBounds().left = pos + halfThumb;
         } else {
+            start = getPaddingLeft() + mAddedTouchBounds;
+            pos = start + pos;
             mScrubber.getBounds().left = start + halfThumb;
             mScrubber.getBounds().right = pos + halfThumb;
         }
+
+        mThumb.copyBounds(mInvalidateRect);
+        mThumb.setBounds(pos, mInvalidateRect.top, pos + thumbWidth, mInvalidateRect.bottom);
+
         final Rect finalBounds = mTempRect;
         mThumb.copyBounds(finalBounds);
         if (!isInEditMode()) {
