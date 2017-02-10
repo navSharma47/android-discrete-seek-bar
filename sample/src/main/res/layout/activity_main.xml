@@ -57,7 +57,7 @@
       <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/lorem_ipsum_2"/>
+        android:text="@string/vertical_seekbar_header"/>
     </LinearLayout>
   </ScrollView>
 
