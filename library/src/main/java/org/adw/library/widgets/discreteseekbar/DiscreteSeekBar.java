@@ -32,6 +32,7 @@ import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v4.view.MotionEventCompat;
 import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -143,8 +144,8 @@ public class DiscreteSeekBar extends View {
     private TrackRectDrawable mScrubber;
     private Drawable mRipple;
 
-    private int mTrackHeight;
-    private int mScrubberHeight;
+    private int mTrackThickness;
+    private int mScrubberThickness;
     private int mAddedTouchBounds;
 
     private int mMax;
@@ -199,8 +200,8 @@ public class DiscreteSeekBar extends View {
         mMirrorForRtl = a.getBoolean(R.styleable.DiscreteSeekBar_dsb_mirrorForRtl, mMirrorForRtl);
         mAllowTrackClick = a.getBoolean(R.styleable.DiscreteSeekBar_dsb_allowTrackClickToDrag, mAllowTrackClick);
         mIndicatorPopupEnabled = a.getBoolean(R.styleable.DiscreteSeekBar_dsb_indicatorPopupEnabled, mIndicatorPopupEnabled);
-        mTrackHeight = a.getDimensionPixelSize(R.styleable.DiscreteSeekBar_dsb_trackHeight, (int) (1 * density));
-        mScrubberHeight = a.getDimensionPixelSize(R.styleable.DiscreteSeekBar_dsb_scrubberHeight, (int) (4 * density));
+        mTrackThickness = a.getDimensionPixelSize(R.styleable.DiscreteSeekBar_dsb_trackHeight, (int) (1 * density));
+        mScrubberThickness = a.getDimensionPixelSize(R.styleable.DiscreteSeekBar_dsb_scrubberHeight, (int) (4 * density));
         int thumbSize = a.getDimensionPixelSize(R.styleable.DiscreteSeekBar_dsb_thumbSize, (int) (density * ThumbDrawable.DEFAULT_SIZE_DP));
         int separation = a.getDimensionPixelSize(R.styleable.DiscreteSeekBar_dsb_indicatorSeparation,
                 (int) (SEPARATION_DP * density));
@@ -637,33 +638,40 @@ public class DiscreteSeekBar extends View {
         int paddingRight = getPaddingRight();
         int bottom = getHeight() - getPaddingBottom() - addedThumb;
         mThumb.setBounds(paddingLeft, bottom - thumbHeight, paddingLeft + thumbWidth, bottom);
-        int trackSize = max(mTrackHeight / 2, 1);
+        int trackThickness = max(mTrackThickness / 2, 1);
 
         int left = paddingLeft + halfThumb;
+        int scrubberThickness = max(mScrubberThickness / 2, 2);
         switch (mOrientation) {
             case HORIZONTAL:
-                int top = bottom - halfThumb - trackSize;
+                int top = bottom - halfThumb - trackThickness;
                 int right = getWidth() - halfThumb - paddingRight - addedThumb;
-                int horizontalTrackBottom = bottom - halfThumb + trackSize;
+                int horizontalTrackBottom = bottom - halfThumb + trackThickness;
                 mTrack.setBounds(left, top, right, horizontalTrackBottom);
+                mScrubber.setBounds(left,
+                                    bottom - halfThumb - scrubberThickness,
+                                    left,
+                                    bottom - halfThumb + scrubberThickness);
                 break;
             case VERTICAL:
-                int verticalTrackLeft = getPaddingLeft() + addedThumb + trackSize + halfThumb;
-                int verticalTrackRight = verticalTrackLeft + max(trackSize, 2);
+                int verticalTrackLeft = getPaddingLeft() + addedThumb + trackThickness + halfThumb;
+                int verticalTrackRight = verticalTrackLeft + max(trackThickness, 2);
                 int verticalSeekBarTop = getPaddingTop() + addedThumb;
                 int verticalSeekBarBottom =
-                    getHeight() - getPaddingBottom() - addedThumb - trackSize;
+                    getHeight() - getPaddingBottom() - addedThumb - trackThickness;
                 mTrack.setBounds(
                     verticalTrackLeft,
                     verticalSeekBarTop,
                     verticalTrackRight,
                     verticalSeekBarBottom);
+                int centerX = getLeft() + getWidth()/2;
+                mScrubber.setBounds(centerX - scrubberThickness,
+                                    verticalSeekBarBottom,
+                                    centerX + scrubberThickness,
+                                    verticalSeekBarBottom);
                 break;
         }
 
-        int scrubberHeight = max(mScrubberHeight / 2, 2);
-        mScrubber.setBounds(left, bottom - halfThumb - scrubberHeight, left,
-            bottom - halfThumb + scrubberHeight);
 
         // Update the thumb position after size changed
         updateThumbPosFromCurrentProgress();
@@ -677,6 +685,9 @@ public class DiscreteSeekBar extends View {
         super.onDraw(canvas);
         mTrack.draw(canvas);
         mScrubber.draw(canvas);
+
+        Log.d("DiscreteSeekBar", "onDraw scrubber bounds = " + mScrubber.getBounds());
+
         mThumb.draw(canvas);
     }
 
@@ -723,14 +734,14 @@ public class DiscreteSeekBar extends View {
 
     private String convertValueToMessage(int value) {
         String format = mIndicatorFormatter != null ? mIndicatorFormatter : DEFAULT_FORMATTER;
-        //We're trying to re-use the Formatter here to avoid too much memory allocations
-        //But I'm not completey sure if it's doing anything good... :(
-        //Previously, this condition was wrong so the Formatter was always re-created
-        //But as I fixed the condition, the formatter started outputting trash characters from previous
-        //calls, so I mark the StringBuilder as empty before calling format again.
+        // We're trying to re-use the Formatter here to avoid too much memory allocations
+        // But I'm not completely sure if it's doing anything good... :(
+        // Previously, this condition was wrong so the Formatter was always re-created
+        // But as I fixed the condition, the formatter started outputting trash characters from previous
+        // calls, so I mark the StringBuilder as empty before calling format again.
 
-        //Anyways, I see the memory usage still go up on every call to this method
-        //and I have no clue on how to fix that... damn Strings...
+        // Anyways, I see the memory usage still go up on every call to this method
+        // and I have no clue on how to fix that... damn Strings...
         if (mFormatter == null || !mFormatter.locale().equals(Locale.getDefault())) {
             int bufferSize = format.length() + String.valueOf(mMax).length();
             if (mFormatBuilder == null) {
@@ -912,8 +923,7 @@ public class DiscreteSeekBar extends View {
             newX = right;
         }
 
-        int available = right - left;
-        float scale = (float) (newX - left) / (float) available;
+        float scale = (float) (newX - left) / (float) getAvailableSpaceFromStartToStop();
         if (isRtl()) {
             scale = 1f - scale;
         }
@@ -922,28 +932,28 @@ public class DiscreteSeekBar extends View {
     }
 
     private void updateProgressFromAnimation(float scale) {
-        Rect bounds = mThumb.getBounds();
-        int halfThumb = bounds.width() / 2;
-        int addedThumb = mAddedTouchBounds;
-        int left = getPaddingLeft() + halfThumb + addedThumb;
-        int right = getWidth() - (getPaddingRight() + halfThumb + addedThumb);
-        int available = right - left;
         int progress = Math.round((scale * (mMax - mMin)) + mMin);
-        //we don't want to just call setProgress here to avoid the animation being cancelled,
-        //and this position is not bound to a real progress value but interpolated
+        // We don't want to just call setProgress here to avoid the animation being cancelled,
+        // and this position is not bound to a real progress value but interpolated
         if (progress != getProgress()) {
             mValue = progress;
             notifyProgress(mValue, true);
             updateProgressMessage(progress);
         }
-        final int thumbPos = (int) (scale * available + 0.5f);
+        final int thumbPos = (int) (scale * getAvailableSpaceFromStartToStop() + 0.5f);
         updateThumbPos(thumbPos);
     }
 
     private void updateThumbPosFromCurrentProgress() {
+        float scaleDraw = (mValue - mMin) / (float) (mMax - mMin);
+
+        final int thumbPos = (int) (scaleDraw * getAvailableSpaceFromStartToStop() + 0.5f);
+        updateThumbPos(thumbPos);
+    }
+
+    private int getAvailableSpaceFromStartToStop() {
         int thumbWidth = mThumb.getIntrinsicWidth();
         int halfThumb = thumbWidth / 2;
-        float scaleDraw = (mValue - mMin) / (float) (mMax - mMin);
 
         int available = 0;
 
@@ -961,9 +971,7 @@ public class DiscreteSeekBar extends View {
                 break;
         }
 
-
-        final int thumbPos = (int) (scaleDraw * available + 0.5f);
-        updateThumbPos(thumbPos);
+        return available;
     }
 
     private void updateThumbPos(int pos) {
@@ -971,20 +979,34 @@ public class DiscreteSeekBar extends View {
         int halfThumb = thumbWidth / 2;
         int start;
 
-        if (isRtl()) {
-            start = getWidth() - getPaddingRight() - mAddedTouchBounds;
-            pos = start - pos - thumbWidth;
-            mScrubber.getBounds().right = start - halfThumb;
-            mScrubber.getBounds().left = pos + halfThumb;
-        } else {
-            start = getPaddingLeft() + mAddedTouchBounds;
-            pos = start + pos;
-            mScrubber.getBounds().left = start + halfThumb;
-            mScrubber.getBounds().right = pos + halfThumb;
-        }
-
         mThumb.copyBounds(mInvalidateRect);
+
+        switch (mOrientation) {
+            case HORIZONTAL:
+                if (isRtl()) {
+                    start = getWidth() - getPaddingRight() - mAddedTouchBounds;
+                    pos = start - pos - thumbWidth;
+                    mScrubber.getBounds().right = start - halfThumb;
+                    mScrubber.getBounds().left = pos + halfThumb;
+                } else {
+                    start = getPaddingLeft() + mAddedTouchBounds;
+                    pos = start + pos;
+                    mScrubber.getBounds().left = start + halfThumb;
+                    mScrubber.getBounds().right = pos + halfThumb;
+                }
         mThumb.setBounds(pos, mInvalidateRect.top, pos + thumbWidth, mInvalidateRect.bottom);
+                break;
+            case VERTICAL:
+                start = getBottom() - getPaddingBottom() - mAddedTouchBounds;
+                pos = start - pos - thumbWidth;
+                mScrubber.getBounds().bottom = start + halfThumb;
+                mScrubber.getBounds().top = pos + halfThumb;
+                mThumb.setBounds(mInvalidateRect.left, pos, mInvalidateRect.right, pos + thumbWidth);
+                Log.d("DiscreteSeekBar", "scrubber bounds = " + mScrubber.getBounds());
+                Log.d("DiscreteSeekBar", "view bounds: left[" + getLeft() + "], top[" + getTop() + "], right[" + getRight() + "], bottom[" +
+                                         getBottom() + "]");
+                break;
+        }
 
         final Rect finalBounds = mTempRect;
         mThumb.copyBounds(finalBounds);
