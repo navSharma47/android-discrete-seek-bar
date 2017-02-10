@@ -16,3 +16,10 @@ allprojects {
         jcenter()
     }
 }
+
+subprojects { subproject ->
+  ext.deps = [build_tools: '25.0.2',
+              min_sdk: 4,
+              support_lib: '23.4.0',
+              target_sdk : 23]
+}

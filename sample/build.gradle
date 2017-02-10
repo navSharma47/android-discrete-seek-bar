@@ -1,13 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 22
-    buildToolsVersion '22.0.1'
+    compileSdkVersion deps.target_sdk
+    buildToolsVersion deps.build_tools
 
     defaultConfig {
         applicationId "org.adw.samples.discreteseekbar"
-        minSdkVersion 4
-        targetSdkVersion 22
+        minSdkVersion deps.min_sdk
+        targetSdkVersion deps.target_sdk
         versionCode 1
         versionName "1.0"
     }
