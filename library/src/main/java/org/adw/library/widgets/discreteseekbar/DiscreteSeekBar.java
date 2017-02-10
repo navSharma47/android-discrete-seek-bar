@@ -942,38 +942,49 @@ public class DiscreteSeekBar extends View {
 
     private void updateThumbPosFromCurrentProgress() {
         int thumbWidth = mThumb.getIntrinsicWidth();
-        int addedThumb = mAddedTouchBounds;
         int halfThumb = thumbWidth / 2;
         float scaleDraw = (mValue - mMin) / (float) (mMax - mMin);
 
-        // This doesn't matter if RTL, as we just need the "available" area
-        int left = getPaddingLeft() + halfThumb + addedThumb;
-        int right = getWidth() - (getPaddingRight() + halfThumb + addedThumb);
-        int available = right - left;
+        int available = 0;
+
+        switch (mOrientation) {
+            case HORIZONTAL:
+                // This doesn't matter if RTL, as we just need the "available" area
+                int left = getPaddingLeft() + halfThumb + mAddedTouchBounds;
+                int right = getWidth() - (getPaddingRight() + halfThumb + mAddedTouchBounds);
+                available = right - left;
+                break;
+            case VERTICAL:
+                int bottom = getPaddingBottom() + halfThumb + mAddedTouchBounds;
+                int top = getHeight() - (getPaddingTop() + halfThumb + mAddedTouchBounds);
+                available = Math.abs(top - bottom);
+                break;
+        }
+
 
         final int thumbPos = (int) (scaleDraw * available + 0.5f);
         updateThumbPos(thumbPos);
     }
 
-    private void updateThumbPos(int posX) {
+    private void updateThumbPos(int pos) {
         int thumbWidth = mThumb.getIntrinsicWidth();
         int halfThumb = thumbWidth / 2;
         int start;
         if (isRtl()) {
             start = getWidth() - getPaddingRight() - mAddedTouchBounds;
-            posX = start - posX - thumbWidth;
+            pos = start - pos - thumbWidth;
         } else {
             start = getPaddingLeft() + mAddedTouchBounds;
-            posX = start + posX;
+            pos = start + pos;
         }
         mThumb.copyBounds(mInvalidateRect);
-        mThumb.setBounds(posX, mInvalidateRect.top, posX + thumbWidth, mInvalidateRect.bottom);
+        mThumb.setBounds(pos, mInvalidateRect.top, pos + thumbWidth, mInvalidateRect.bottom);
         if (isRtl()) {
             mScrubber.getBounds().right = start - halfThumb;
-            mScrubber.getBounds().left = posX + halfThumb;
+            mScrubber.getBounds().left = pos + halfThumb;
         } else {
             mScrubber.getBounds().left = start + halfThumb;
-            mScrubber.getBounds().right = posX + halfThumb;
+            mScrubber.getBounds().right = pos + halfThumb;
         }
         final Rect finalBounds = mTempRect;
         mThumb.copyBounds(finalBounds);
