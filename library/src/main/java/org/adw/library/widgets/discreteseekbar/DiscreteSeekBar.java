@@ -416,7 +416,7 @@ public class DiscreteSeekBar extends View {
     /**
      * Get the current progress
      *
-     * @return the current progress :-P
+     * @return the current progress
      */
     public int getProgress() {
         return mValue;
