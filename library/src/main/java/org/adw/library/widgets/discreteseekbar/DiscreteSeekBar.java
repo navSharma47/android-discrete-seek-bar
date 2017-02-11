@@ -150,7 +150,7 @@ public class DiscreteSeekBar extends View {
 
     private int mMax;
     private int mMin;
-    private int mValue;
+    private int mProgress;
     private int mKeyProgressIncrement = 1;
     private boolean mMirrorForRtl = false;
     private boolean mAllowTrackClick = true;
@@ -239,7 +239,7 @@ public class DiscreteSeekBar extends View {
 
         mMin = min;
         mMax = max(min + 1, max);
-        mValue = max(min, Math.min(max, value));
+        mProgress = max(min, Math.min(max, value));
         updateKeyboardRange();
 
         mIndicatorFormatter = a.getString(R.styleable.DiscreteSeekBar_dsb_indicatorFormatter);
@@ -302,7 +302,7 @@ public class DiscreteSeekBar extends View {
      */
     public void setIndicatorFormatter(@Nullable String formatter) {
         mIndicatorFormatter = formatter;
-        updateProgressMessage(mValue);
+        updateProgressMessage(mProgress);
     }
 
     /**
@@ -315,7 +315,7 @@ public class DiscreteSeekBar extends View {
         mNumericTransformer = transformer != null ? transformer : new DefaultNumericTransformer();
         //We need to refresh the PopupIndicator view
         updateIndicatorSizes();
-        updateProgressMessage(mValue);
+        updateProgressMessage(mProgress);
     }
 
     /**
@@ -348,7 +348,7 @@ public class DiscreteSeekBar extends View {
         }
         updateKeyboardRange();
 
-        if (mValue < mMin || mValue > mMax) {
+        if (mProgress < mMin || mProgress > mMax) {
             setProgress(mMin);
         }
         //We need to refresh the PopupIndicator view
@@ -378,7 +378,7 @@ public class DiscreteSeekBar extends View {
         }
         updateKeyboardRange();
 
-        if (mValue < mMin || mValue > mMax) {
+        if (mProgress < mMin || mProgress > mMax) {
             setProgress(mMin);
         }
     }
@@ -405,8 +405,8 @@ public class DiscreteSeekBar extends View {
             mPositionAnimator.cancel();
         }
 
-        if (mValue != value) {
-            mValue = value;
+        if (mProgress != value) {
+            mProgress = value;
             notifyProgress(value, fromUser);
             updateProgressMessage(value);
             updateThumbPosFromCurrentProgress();
@@ -417,7 +417,7 @@ public class DiscreteSeekBar extends View {
      * @return the current progress
      */
     public int getProgress() {
-        return mValue;
+        return mProgress;
     }
 
     /**
@@ -857,7 +857,7 @@ public class DiscreteSeekBar extends View {
     }
 
     private int getAnimatedProgress() {
-        return isAnimationRunning() ? getAnimationTarget() : mValue;
+        return isAnimationRunning() ? getAnimationTarget() : mProgress;
     }
 
 
@@ -934,8 +934,8 @@ public class DiscreteSeekBar extends View {
         // We don't want to just call setProgress here to avoid the animation being cancelled,
         // and this position is not bound to a real progress value but interpolated
         if (progress != getProgress()) {
-            mValue = progress;
-            notifyProgress(mValue, true);
+            mProgress = progress;
+            notifyProgress(mProgress, true);
             updateProgressMessage(progress);
         }
         final int thumbPos = (int) (scale * getAvailableSpaceFromStartToStop() + 0.5f);
@@ -943,7 +943,7 @@ public class DiscreteSeekBar extends View {
     }
 
     private void updateThumbPosFromCurrentProgress() {
-        float scaleDraw = (mValue - mMin) / (float) (mMax - mMin);
+        float scaleDraw = (mProgress - mMin) / (float) (mMax - mMin);
 
         final int thumbPos = (int) (scaleDraw * getAvailableSpaceFromStartToStop() + 0.5f);
         updateThumbPos(thumbPos);
